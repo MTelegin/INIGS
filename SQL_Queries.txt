@@ -1,0 +1,305 @@
+ВЫБРАТЬ
+	Соответствия.УИД
+ИЗ
+	РегистрСведений.РУАН_СоответствияОбъектовОбмена КАК Соответствия
+ЛЕВОЕ СОЕДИНЕНИЕ
+	Справочник.Номенклатура КАК Номенклатура
+ПО
+	Номенклатура.Ссылка = Соответствия.Объект
+СГРУППИРОВАТЬ ПО
+	Соответствия.УИД
+ИМЕЮЩИЕ
+	Количество(*) > 1
+	
+БИТРИКС
+Список ID товаров у которых НЕ ЗАПОЛНЕН КОД 1С
+select element.ID as ID, property.VALUE as CODE_1C
+	from b_iblock_element element
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 6936
+where
+    element.IBLOCK_ID = 10
+&&  property.VALUE IS NULL
+&& (element.ID <> 15409 && element.ID <> 15410 && element.ID <> 15411)
+
+DEV БИТРИКС
+Список ID товаров у которых НЕ ЗАПОЛНЕН КОД 1С
+select element.ID as ID, property.VALUE as CODE_1C 
+	from b_iblock_element element
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 6936
+where
+    element.IBLOCK_ID = 10
+&&  property.VALUE IS NULL
+&& (element.ID <> 15409 && element.ID <> 15410 && element.ID <> 15411)
+
+
+Вывод ID + NAME товара, код 1С, код из торговли по товарам с ПУСТОЙ КАТЕГОРИЕЙ В НАЛИЧИИ
+select element.ID as ID, element.NAME as NAME, property.VALUE as CODE_TRADE, property2.VALUE as CODE_1C 
+	from b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID 
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 6951 
+LEFT JOIN b_iblock_element_property property2 ON property2.IBLOCK_ELEMENT_ID = element.ID && property2.IBLOCK_PROPERTY_ID = 6936
+where 
+	element.IBLOCK_SECTION_ID IS NULL 
+ && element.IBLOCK_ID = 10
+ && element.ACTIVE = "Y" && (element.PREVIEW_PICTURE > 0 || element.DETAIL_PICTURE > 0)
+ && product.QUANTITY > 0 && product.AVAILABLE= "Y" 
+
+DEV БИТРИКС Вывод ID + NAME товара, код 1С, код из торговли по товарам с ПУСТОЙ КАТЕГОРИЕЙ В НАЛИЧИИ
+select element.ID as ID, element.NAME as NAME, property.VALUE as CODE_TRADE, property2.VALUE as CODE_1C 
+	from b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID 
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 18468
+LEFT JOIN b_iblock_element_property property2 ON property2.IBLOCK_ELEMENT_ID = element.ID && property2.IBLOCK_PROPERTY_ID = 20711
+where 
+	element.IBLOCK_SECTION_ID IS NULL 
+ && element.IBLOCK_ID = 95
+ && element.ACTIVE = "Y" && (element.PREVIEW_PICTURE > 0 || element.DETAIL_PICTURE > 0)
+ && product.QUANTITY > 0 && product.AVAILABLE= "Y"
+
+Вывод ID + NAME товара,  
+select element.ID as ID, element.NAME as NAME, property.DESCRIPTION as BRAND from b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID
+where
+	product.QUANTITY > 0 && product.AVAILABLE= "Y"
+&&	property.IBLOCK_PROPERTY_ID = 94 && property.VALUE = 'Бренд'
+
+Вывод ID + NAME товара,
+select property.DESCRIPTION as BRAND, element.ID as ID, element.NAME as NAME from b_iblock_element_property property
+LEFT JOIN b_iblock_element element ON element.ID = property.IBLOCK_ELEMENT_ID
+LEFT JOIN b_catalog_product product ON product.ID = property.IBLOCK_ELEMENT_ID
+where
+	property.IBLOCK_PROPERTY_ID = 94 && property.VALUE = 'Бренд'
+&&	product.QUANTITY > 0 && product.AVAILABLE= "Y"	
+order by property.DESCRIPTION ASC
+
+DEV БИТРИКС - Вывод ID + NAME товара,
+select element.ID as ID, element.NAME as NAME, property.DESCRIPTION as BRAND from b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID
+where
+	product.QUANTITY > 0 && product.AVAILABLE= "Y"
+&&	property.IBLOCK_PROPERTY_ID = 18737 && property.VALUE = 'Бренд'
+order by property.DESCRIPTION ASC
+
+select element.ID as ID, element.NAME as NAME, product.QUANTITY as QUANTITY, property.DESCRIPTION as BRAND from b_iblock_element_property property
+LEFT JOIN b_iblock_element element ON element.ID = property.IBLOCK_ELEMENT_ID
+LEFT JOIN b_catalog_product product ON product.ID = property.IBLOCK_ELEMENT_ID
+where
+	property.IBLOCK_PROPERTY_ID = 94 && property.VALUE = 'Бренд'
+order by property.DESCRIPTION ASC, product.QUANTITY ASC, element.ID ASC 
+
+select DESCRIPTION from b_iblock_element_property
+	where IBLOCK_ELEMENT_ID = ".$arAcc["ID"]." && IBLOCK_PROPERTY_ID = 94 && VALUE = 'Бренд'
+
+БИТРИКС - Дубли в 1С Битрикс
+select property.VALUE, count(*) from b_iblock_element_property property
+where property.IBLOCK_PROPERTY_ID = 6951
+group by property.VALUE
+having count(*) > 1
+
+1С - помеченные на удаление
+ВЫБРАТЬ
+	Номра.Код,
+	Номра.КодИзТорговли,
+	Номра.ПометкаУдаления,
+	Реквизиты.Значение
+ИЗ
+	Справочник.Номенклатура КАК Номра
+ЛЕВОЕ СОЕДИНЕНИЕ
+	Справочник.Номенклатура.ДополнительныеРеквизиты КАК Реквизиты
+ПО
+	Реквизиты.Ссылка = Номра.Ссылка
+И	Реквизиты.Свойство.Наименование ПОДОБНО ("%Не выводить%")
+ГДЕ
+	//НЕ Реквизиты.Свойство Есть NULL
+	Номра.ПометкаУдаления = Истина
+	
+
+Битрикс - Код 1С, ID элемента инфоблока
+select property.VALUE, element.ID from b_iblock_element element 
+left join b_iblock_element_property property 
+	ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 6936 
+where element.IBLOCK_ID = 95
+
+БИТРИКС UNION - соединение запросов
+select ID, NAME, 1 from b_iblock_element where IBLOCK_ID = 10 && NAME like "%bosch%40%"
+UNION 
+select ID, NAME, 2 from b_iblock_element where IBLOCK_ID = 10 && NAME like "%40%bosch%"
+
+Количество неактивной номенклатуры
+select count(*) from b_iblock_element where ACTIVE = 'N' && IBLOCK_ID = 95
+
+Всю номенклатуру сделать активной:
+update b_iblock_element set ACTIVE = 'Y' where IBLOCK_ID = 95
+
+
+WORK - ID, CODE, NAME, ACTIVE + название родителя, дедушки и прадедушки по разделам в которых ЦИФРЫ
+select sect.ID, sect.CODE, sect.NAME, sect.ACTIVE, parent.NAME as PARENT_NAME, grandparent.NAME as GRANDPARENT_NAME, grandparent2.NAME as GRANDPARENT_NAME2 
+from b_iblock_section sect
+LEFT JOIN b_iblock_section parent ON parent.ID = sect.IBLOCK_SECTION_ID
+LEFT JOIN b_iblock_section grandparent ON grandparent.ID = parent.IBLOCK_SECTION_ID
+LEFT JOIN b_iblock_section grandparent2 ON grandparent2.ID = grandparent.IBLOCK_SECTION_ID
+where (sect.CODE like '%1' || sect.CODE like '%2' || sect.CODE like '%3' 
+	|| sect.CODE like '%4' || sect.CODE like '%5' || sect.CODE like '%6' 
+	|| sect.CODE like '%7' || sect.CODE like '%8' || sect.CODE like '%9'
+	|| sect.CODE like '%benzopily%'
+	|| sect.CODE like '%magnitnye-urovni%'
+	|| sect.CODE like '%shtangentsirkuli-shts%'
+	|| sect.CODE like '%pnevmaticheskie-kraskopulty%'
+	|| sect.CODE like '%pnevmogaykoverty%'
+	|| sect.CODE like '%pnevmodreli%'
+	|| sect.CODE like '%generatory-15-kvt-elektrostantsii%'
+	|| sect.CODE like '%akkumulyatornye-gaykoverty%'
+	|| sect.CODE like '%akkumulyatornye-lobziki%'
+	|| sect.CODE like '%akkumulyatornye-mnogofunktsionalnye-instrumenty%'
+) 
+&& sect.ACTIVE = "Y" && sect.IBLOCK_ID = 10
+order by sect.CODE ASC
+
+
+select sect.ID, sect.CODE, sect.NAME, sect.DESCRIPTION, sect.ACTIVE, sect.IBLOCK_SECTION_ID, parent.NAME as PARENT_NAME, grandparent.NAME as GRANDPARENT_NAME, grandparent2.NAME as GRANDPARENT_NAME2 from b_iblock_section sect
+LEFT JOIN b_iblock_section parent ON parent.ID = sect.IBLOCK_SECTION_ID
+LEFT JOIN b_iblock_section grandparent ON grandparent.ID = parent.IBLOCK_SECTION_ID
+LEFT JOIN b_iblock_section grandparent2 ON grandparent2.ID = grandparent.IBLOCK_SECTION_ID
+where sect.CODE like '%shtangentsirkuli-shts%' && sect.ACTIVE = "Y" && sect.IBLOCK_ID = 10
+
+Связанные элементы
+select * from b_iblock_element_property where IBLOCK_ELEMENT_ID = 75743	&& IBLOCK_PROPERTY_ID = 7533
+
+Элементы 95- го инфоблока с брендом
+select element.ID as ID, element.NAME as NAME, property.VALUE as VALUE, property.DESCRIPTION as DESCRIPTION from b_iblock_element element
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID
+where
+	element.NAME like '%bosch%'
+&&	element.IBLOCK_ID = 95
+&&	element.ACTIVE = "Y"
+&&	property.VALUE = 'Бренд'
+&& 	property.DESCRIPTION like '%bosch%'
+
+
+select element.ID as ID from b_iblock_element element
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID
+where
+	element.NAME like '%bosch%'
+&&	element.IBLOCK_ID = 95
+&&	element.ACTIVE = "Y"
+&&	property.VALUE = 'Бренд'
+&& 	property.DESCRIPTION like '%bosch%'
+
+Запрос по разделам:
+select ID, NAME, IBLOCK_ID, IBLOCK_SECTION_ID, ACTIVE, PICTURE, DEPTH_LEVEL, DETAIL_PICTURE  from b_iblock_section where IBLOCK_ID = 95
+
+
+ЦЕНЫ - ТАБЛИЦА  b_catalog_price !!!
+
+Поиск свойств значение "Объект не найден"
+select * from b_iblock_element_property WHERE DESCRIPTION like '%бъект%'
+
+Ограничение количества строк - LIMIT !!!
+select ID  from b_iblock_element
+ORDER BY ID DESC
+LIMIT 10
+
+Выборка строк по свойствам
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE, prop.DESCRIPTION, 
+element.NAME, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION
+from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID
+	&& prop.VALUE LIKE "%Тип патрона%"
+	&& prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20934
+where element.NAME like "%Дрель%"
+
+Выборка свойств + ID раздела
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE, prop.DESCRIPTION, 
+element.NAME, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION, section_element.IBLOCK_SECTION_ID as SECTION_ID
+from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID
+	&& prop.VALUE LIKE "%Тип патрона%"
+	&& prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20934
+LEFT JOIN b_iblock_section_element section_element ON section_element.IBLOCK_ELEMENT_ID = element.ID
+where element.NAME like "%Дрель%"
+
+Выборка свойств + ID раздела + ID родительского раздела
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE, prop.DESCRIPTION, 
+element.NAME, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION, section_element.IBLOCK_SECTION_ID as SECTION_ID, section.IBLOCK_SECTION_ID as PARENT_SECTION_ID 
+from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID
+	&& prop.VALUE LIKE "%Тип патрона%"
+	&& prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20934
+LEFT JOIN b_iblock_section_element section_element ON section_element.IBLOCK_ELEMENT_ID = element.ID
+LEFT JOIN b_iblock_section section ON section.ID = section_element.IBLOCK_SECTION_ID
+where element.NAME like "%Дрель%"
+
+Выборка свойств + ID раздела + ID родительского раздела
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE as VALUE, prop.DESCRIPTION as DESCRIPTION, 
+	element.NAME as NAME, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION, prop_enum.VALUE as ENUM_TEXT
+from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID && prop.VALUE LIKE "%Тип тепловой пушки%" && prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20945
+LEFT JOIN b_iblock_property_enum prop_enum ON prop_enum.ID = fillprop.VALUE && prop_enum.PROPERTY_ID = 20945
+where element.IBLOCK_ID = 95 && prop.DESCRIPTION IS NOT NULL
+
+Использования свойства
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE as VALUE, prop.DESCRIPTION as DESCRIPTION, 
+	element.NAME as NAME, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION, prop_enum.VALUE as ENUM_TEXT from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID && prop.VALUE LIKE "%Тип лестницы%" && prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20951 
+LEFT JOIN b_iblock_property_enum prop_enum ON prop_enum.ID = fillprop.VALUE && prop_enum.PROPERTY_ID = 20951 
+where element.IBLOCK_ID = 95 && prop.DESCRIPTION IS NOT NULL
+
+С количеством использования значений свойств
+select prop.DESCRIPTION, count(*) 
+	from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID && prop.VALUE LIKE "%Тип лестницы%" && prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20951 
+LEFT JOIN b_iblock_property_enum prop_enum ON prop_enum.ID = fillprop.VALUE && prop_enum.PROPERTY_ID = 20951 
+where element.IBLOCK_ID = 95 && prop.DESCRIPTION IS NOT NULL
+GROUP BY prop.DESCRIPTION ASC
+ORDER BY count(prop.DESCRIPTION) DESC
+
+Шлифмашины с НЕ ЗАПОЛНЕННОЙ "Мощность, Вт"
+select element.ID as ELEMENT_ID, prop.IBLOCK_PROPERTY_ID, prop.IBLOCK_ELEMENT_ID, prop.VALUE as VALUE, prop.DESCRIPTION,
+	element.NAME as NAME, prop.DESCRIPTION as DESCRIPTION, fillprop.VALUE as FILL_VALUE, fillprop.DESCRIPTION as FILL_DESCRIPTION, prop_enum.VALUE as ENUM_TEXT
+from b_iblock_element element
+LEFT JOIN b_iblock_element_property prop ON prop.IBLOCK_ELEMENT_ID = element.ID && prop.VALUE LIKE "Мощность, Вт%" && prop.IBLOCK_PROPERTY_ID = 7490
+LEFT JOIN b_iblock_element_property fillprop ON fillprop.IBLOCK_ELEMENT_ID = element.ID && fillprop.IBLOCK_PROPERTY_ID = 20910 
+LEFT JOIN b_iblock_property_enum prop_enum ON prop_enum.ID = fillprop.VALUE && prop_enum.PROPERTY_ID = 20910 
+where element.IBLOCK_ID = 95 && prop.DESCRIPTION IS NULL && element.NAME like "%Шлифмаш%"
+
+Номенклатура без картинки
+select id, NAME, ACTIVE, PREVIEW_PICTURE, DETAIL_PICTURE from b_iblock_element 
+where 
+	IBLOCK_ID = 95 && (DETAIL_PICTURE IS NULL || PREVIEW_PICTURE IS NULL)
+
+	
+ID + Наименование, В наличии, наличие общим количеством, наличие по складам
+select element.ID as ID, element.NAME as NAME, property.VALUE as CODE_TRADE, product.QUANTITY as PROD_QUANTITY, product.AVAILABLE as PROD_AVAILABLE, store_prod.AMOUNT as STORE_AMOUNT, store_prod.STORE_ID as STORE_ID
+	from b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID 
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 20711
+LEFT JOIN b_catalog_store_product store_prod ON store_prod.PRODUCT_ID = element.ID
+where 
+	element.IBLOCK_SECTION_ID IS NULL 
+ && element.IBLOCK_ID = 95
+ && element.ACTIVE = "Y"
+
+Позиции у которых Свойство "В наличии" = "Нет", но ЕСТЬ НА КАКОМ ТО СКЛАДЕ
+select element.ID as ID, element.NAME as NAME, property.VALUE as CODE_TRADE, product.QUANTITY as PROD_QUANTITY, product.AVAILABLE as PROD_AVAILABLE,
+	store_prod.AMOUNT as STORE_AMOUNT, store_prod.STORE_ID as STORE_ID, property_av.VALUE as AV_VALUE, property_av.DESCRIPTION as AV_DESCRIPTION, prop_enum.VALUE as ENUM_TEXT
+FROM b_iblock_element element
+LEFT JOIN b_catalog_product product ON product.ID = element.ID
+LEFT JOIN b_iblock_element_property property ON property.IBLOCK_ELEMENT_ID = element.ID && property.IBLOCK_PROPERTY_ID = 20711
+LEFT JOIN b_iblock_element_property property_av ON property_av.IBLOCK_ELEMENT_ID = element.ID && property_av.IBLOCK_PROPERTY_ID = 7507
+LEFT JOIN b_iblock_property_enum prop_enum ON prop_enum.ID = property_av.VALUE && prop_enum.PROPERTY_ID = 7507
+LEFT JOIN b_catalog_store_product store_prod ON store_prod.PRODUCT_ID = element.ID
+where 
+	element.IBLOCK_ID = 95
+&&  element.ACTIVE = "Y"
+&&  prop_enum.VALUE <> "Есть" && store_prod.AMOUNT > 0
+ORDER BY element.ID ASC
+
+2 commit
