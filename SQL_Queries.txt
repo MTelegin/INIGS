@@ -302,4 +302,5 @@ where
 &&  prop_enum.VALUE <> "Есть" && store_prod.AMOUNT > 0
 ORDER BY element.ID ASC
 
-2 commit
+Добавочка
+не забудь про жёлуди
